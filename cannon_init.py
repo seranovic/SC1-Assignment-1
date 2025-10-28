@@ -18,10 +18,13 @@ Program controles:
   !!! Remember to update the program description for your version !!!
 
 '''
+from random import random
 
 # Import modules
 import pygame
 import sys
+import math
+import numpy
 
 # Initialize pygame
 pygame.init()
@@ -31,6 +34,9 @@ BLACK = 0, 0, 0
 WHITE = 255, 255, 255
 BLUE = 0, 0, 255
 RED = 255, 0, 0
+PINK = 255, 204, 229
+PURPLE = 153, 0, 153
+
 
 # Define a frame rate
 frames_per_second = 60
@@ -38,6 +44,7 @@ frames_per_second = 60
 # Initialize real world parameters
 g = 9.8   # Gravitational acceleration (m/s**2)
 mass = 1  # Mass of projectile (kg)
+D = 0.3 # Coefficient of drag
 
 # Set parameters for time
 speedup = 8    # in order to reduce waiting time for impact we speed up by increasing the timestep
@@ -50,6 +57,10 @@ x_grid = 100 # the interval of x-axis grid of the coordinate system
 y_grid = 100  # the interval of y-axis grid of the coordinate system
 
 scale_real_to_screen = 0.5 # scale from the real-world to the screen-coordinate system
+
+round_counter = 0 # round counter
+score_1 = 0 # player 1 score
+score_2 = 0 # player 2 score
 
 def convert(real_world_x, real_world_y, scale=scale_real_to_screen, real_world_height=height):
     ''' conversion from real-world coordinates to pixel-coordinates '''
@@ -74,8 +85,17 @@ cannon1 = {"x": 200,
            "color": BLUE,
            'ball_radius': 2  # radius in meters
             }
+cannon2 = {"x": 900,
+           "y": 0+cannon_height,
+           "vx": -84.85,  # ≈ 120 m/s angle 45
+           "vy": 84.85,  # ≈ 120 m/s angle 45
+           "width": cannon_width,
+           "height": cannon_height,
+           "color": PINK,
+           'ball_radius': 2  # radius in meters
+            }
 # list of players
-players = [cannon1]
+players = [cannon1,cannon2]
 
 def calc_init_ball_pos(cannon):
     ''' Finds the center of the cannon '''
@@ -99,6 +119,24 @@ def is_inside_field(real_world_x, real_world_y, field_width=width):
     # Note: there is no ceiling
     return 0 < real_world_x < field_width and real_world_y > 0
 
+def is_player_hit(real_world_x, real_world_y):
+    return False
+
+def random_wind():
+
+    wind = numpy.random.uniform(-15, 15)
+    return wind
+
+def draw_wind(surface, cannon, wind_velocity):
+    ''' Draw an arrow showing a random wind velocity from -15 to 15 '''
+
+    x_start, y_start = convert(cannon['x'], cannon['y']+100, scale_real_to_screen)
+    x_end, y_end = convert(cannon['x']+wind_velocity*25, cannon['y']+100, scale_real_to_screen)
+
+    pygame.draw.line(surface,PURPLE,(x_start,y_start),(x_end,y_end),5)
+
+
+
 # Create PyGame screen:
 # 1. specify screen size
 screen_width, screen_height = int(width*scale_real_to_screen), int(height*scale_real_to_screen)
@@ -116,13 +154,13 @@ def draw_grid(surface, color, real_x_grid, real_y_grid, real_width=width, real_h
     # vertical lines
     for i in range(int(real_width / real_x_grid)):
         pygame.draw.line(surface, color, convert(i * real_x_grid, 0),  convert(i * real_x_grid, real_height))
-    # horisontal lines
+    # horizontal lines
     for i in range(int(real_height / y_grid)):
         pygame.draw.line(surface, color, convert(0 , i * real_y_grid ), convert(real_width, i * real_y_grid))
 
 # Initialize game loop variables
 running = True
-shooting = True
+shooting = False
 show_grid = True
 turn = 0
 
@@ -132,6 +170,7 @@ vx = players[turn]['vx']  # x velocity in meters per second
 vy = players[turn]['vy']  # y velocity in meters per second
 ball_color = players[turn]['color']
 ball_radius = players[turn]['ball_radius']
+wind = random_wind() # x velocity in meters per second
 
 def change_player():
     ''' initialize the global variables of the projectile to be those of the players cannon '''
@@ -144,6 +183,7 @@ def change_player():
     vx, vy = players[turn]['vx'], players[turn]['vy']
     ball_color = players[turn]['color']
     ball_radius = players[turn]['ball_radius']
+    wind = random_wind()
 
 # Game loop:
 while running:
@@ -156,10 +196,16 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_g:
             show_grid = not show_grid
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE: # 1.
+            shooting = not shooting
 
     # Check whether the ball is outside the field
     if not is_inside_field(x,y):
         change_player() # if there is only one player, the ball will restart at that players center
+        round_counter += 1
+        shooting = not shooting # stops shooting between shots missed
+        wind = random_wind() # changes wind direction
+
 
     # Game logic
     #   draw a background using screen.fill()
@@ -171,6 +217,30 @@ while running:
 
     # draw the player's cannon
     draw_cannon(screen, cannon1)
+    draw_cannon(screen, cannon2)
+
+    # draw wind direction arrow
+
+    if turn == 0:
+        draw_wind(screen, cannon1, wind)
+    else:
+        draw_wind(screen, cannon2, wind)
+
+    # keep track of players' scores
+
+
+    # end game when score 5 rounds are through, posts score.
+
+    if round_counter == 5*len(players):
+        running = False
+        print(f'GAME OVER: {round_counter} rounds')
+        for i in range(len(players)):
+            print(f'PLAYER {i+1} SCORE: {score_1}')
+        print(f'Thanks for playing.')
+
+
+
+
 
     # convert the real-world coordinates to pixel-coordinates
     x_pix, y_pix = convert(x, y)
@@ -186,9 +256,9 @@ while running:
         # update time passed, the projectile 's real-world acceleration, velocity,
         # position for the next time_step using the Leap-Frog algorithm
 
-        # Apply force of gravitational acceleration
-        Fx = 0
-        Fy = -mass*g
+        # Apply force of gravitational acceleration and drag
+        Fx = 0 - math.cos(math.pi/4)*D*(vx-wind)
+        Fy = -mass*g - math.sin(math.pi/4)*D*vy
 
         # Compute acceleration
         ax = Fx/mass
