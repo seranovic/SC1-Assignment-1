@@ -127,6 +127,14 @@ def random_wind():
     wind = numpy.random.uniform(-15, 15)
     return wind
 
+def change_shot(cannon):
+    x, y = pygame.mouse.get_pos()
+    x, y = x-cannon['x'], y-cannon['y']
+    x_real, y_real = convert(x, y)
+    cannon['vx'] = x_real
+    cannon['vy'] = y_real
+
+
 def draw_wind(surface, cannon, wind_velocity):
     ''' Draw an arrow showing a random wind velocity from -15 to 15 '''
 
@@ -198,6 +206,8 @@ while running:
             show_grid = not show_grid
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE: # 1.
             shooting = not shooting
+        if pygame.mouse.get_pressed()[0]:
+            change_shot(players[turn])
 
     # Check whether the ball is outside the field
     if not is_inside_field(x,y):
