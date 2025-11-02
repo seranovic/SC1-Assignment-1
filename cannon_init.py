@@ -12,7 +12,8 @@
 Program controls:
     Press q to quit,
           g to show/hide grid
-          Click mouse1 to change velocity of ball
+          Spacebar to shoot
+          Click mouse1 to change velocity of cannonball
 
   Authors: S. Stefanovich, Maja H Kirkeby & Ulf R. Pedersen
 
@@ -263,7 +264,7 @@ while running:
 
     if turn_counter == 5*len(players):
         running = False
-        print(f'GAME OVER: {int(turn_counter/2)} rounds')
+        print(f'GAME OVER: {int(turn_counter/len(players))} rounds')
         for i in range(len(players)):
             print(f'PLAYER {i+1} SCORE: {players[i]['score']}')
         print(f'Thanks for playing.')
@@ -288,8 +289,8 @@ while running:
         # position for the next time_step using the Leap-Frog algorithm
 
         # Apply force of gravitational acceleration and drag
-        Fx = 0 - math.cos(math.pi/4)*D*(vx-wind)
-        Fy = -mass*g - math.sin(math.pi/4)*D*vy
+        Fx = 0 - math.cos(math.atan(vy/vx))*D*(vx-wind)
+        Fy = -mass*g - math.sin(math.atan(vy/vx))*D*vy
 
         # Compute acceleration
         ax = Fx/mass
