@@ -257,9 +257,6 @@ while running:
     else:
         draw_wind(screen, cannon2, wind)
 
-    # keep track of players' scores
-
-
     # end game when score 5 rounds are through, posts score.
 
     if turn_counter == 5*len(players):
@@ -290,7 +287,7 @@ while running:
 
         # Apply force of gravitational acceleration and drag
         Fx = 0 - D*(vx-wind)
-        Fy = -mass*g# - math.sin(math.pi/4)*D*vy
+        Fy = -mass*g-D*vy
 
         # Compute acceleration
         ax = Fx/mass
