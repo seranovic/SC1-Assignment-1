@@ -289,8 +289,8 @@ while running:
         # position for the next time_step using the Leap-Frog algorithm
 
         # Apply force of gravitational acceleration and drag
-        Fx = 0 - math.cos(math.pi/4)*D*(vx-wind)
-        Fy = -mass*g - math.sin(math.pi/4)*D*vy
+        Fx = 0 - D*(vx-wind)
+        Fy = -mass*g# - math.sin(math.pi/4)*D*vy
 
         # Compute acceleration
         ax = Fx/mass
