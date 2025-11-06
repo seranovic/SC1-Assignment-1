@@ -3,7 +3,7 @@
  Program functionality description:
 
    The following program displays a (2000m broad and 1000m high) field with a blue canon (20m wide, 16m high) positioned
-   200m from the left side of the field. The scaling factor is 0.5, thus the window is 1000 pixels x 500 pixels.
+   200m from the left side of the field and a pink cannon positioned 200m from the right side of the field. The scaling factor is 0.5, thus the window is 1000 pixels x 500 pixels.
    The cannon's upper left corner is at position (200m,16m). The player can click to change the initial velocity of the
    cannon shot. Once the cannonball hits the ground, it explodes with a 200 m radius explosion. Hit the other player
    with the explosion to score a point. After 5 rounds the winner will be the player with the most points.
