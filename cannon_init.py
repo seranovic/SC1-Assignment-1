@@ -148,6 +148,13 @@ def change_shot(cannon):
     cannon['vx'], cannon['vy'] = new_vx, new_vy
     return new_vx, new_vy
 
+def random_vx(cannon):
+    '''Generates a random velocity for the cannon to aim towards'''
+    vx = numpy.random.uniform(-120,120)
+    vy = numpy.random.uniform(-120,120)
+
+    return vx, vy
+
 
 def draw_wind(surface, cannon, wind_velocity):
     ''' Draw an arrow showing a random wind velocity from -15 to 15. The velocity is shown 10x for clarity. '''
@@ -194,7 +201,6 @@ vy = players[turn]['vy']  # y velocity in meters per second
 ball_color = players[turn]['color']
 ball_radius = players[turn]['ball_radius']
 wind = random_wind() # x velocity in meters per second
-x_hit, y_hit = 0,0
 
 def change_player():
     ''' initialize the global variables of the projectile to be those of the players cannon '''
@@ -205,7 +211,6 @@ def change_player():
     ball_color = players[turn]['color']
     ball_radius = players[turn]['ball_radius']
     wind = random_wind()
-    x_hit, y_hit = 0, 0
 
 # Game loop:
 while running:
@@ -226,14 +231,16 @@ while running:
     # Check whether the ball is outside the field
     if not is_inside_field(x,y):
         x_hit, y_hit = x,y
-        print(x_hit, y_hit)
+        print(f'CANNON LANDED AT COORDINATES: {x_hit, y_hit}')
         if is_player_hit(x_hit,y_hit,players[turn-1]): #checks if blast radius hit other player
             Hit = True
             players[turn]['score'] += 1
-            print('HIT')
+            print('HIT \nHIT \nHIT \nHIT')
 
         change_player() # if there is only one player, the ball will restart at that players center
         turn_counter += 1
+        if turn == 0 and not turn_counter == 10:
+            print(f'Round {int(turn_counter/2 + 1)}')
         shooting = not shooting # stops shooting between shots
         wind = random_wind() # changes wind direction
 
@@ -273,9 +280,8 @@ while running:
 
     # draw ball using the pixel coordinates
     pygame.draw.circle(screen, ball_color, (x_pix,y_pix), ball_radius_pix)
-    x_hit, y_hit = convert(x_hit, y_hit)
     if Hit:
-        pygame.draw.circle(screen, ORANGE, (x_hit,y_hit), blast_field*scale_real_to_screen)
+        pygame.draw.circle(screen, ORANGE, convert(x_hit,y_hit), blast_field*scale_real_to_screen)
 
 
     # print time passed, position and velocity
